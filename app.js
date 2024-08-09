@@ -71,7 +71,8 @@ app.post('/interactions',  async function (req, res) {
     }
     // Help menu displaying commands
     if (name === 'help') {
-      const helpText = `**/help** -> Displays this menu **(Hidden to other players)** \n
+      const helpText = ` \n
+      **/help** -> Displays this menu **(Hidden to other players)** \n
       **/ping** {info} -> Pings all guessers with any addditional info to help guess the drink **(Revealer only)** \n
       **/guess** {drink} -> Submits a guess with the given drink **(can be overridden before the reveal, hidden to other players)** \n
       **/guess_status** -> Gives the status on the drink you currently have guesssed **(Hidden to other players)** \n
