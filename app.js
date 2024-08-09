@@ -269,7 +269,7 @@ app.post('/interactions',  async function (req, res) {
       });
     }
     // Gets a current list of guesses
-    if (name === 'get_guesses') {
+    if (name === 'inspect_guesses') {
       const guesses = await guessClient.getAllGuessesOnRound(roundNumber);
       var guessFormat = '';
       var userList = [];
