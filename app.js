@@ -6,14 +6,11 @@ import GuessRoutes from './guesses/routes.js';
 import axios from 'axios';
 import {
   InteractionType,
-  InteractionResponseType,
-  InteractionResponseFlags,
-  MessageComponentTypes,
-  ButtonStyleTypes,
-  verifyKeyMiddleware
+  InteractionResponseType
 } from 'discord-interactions';
-import { VerifyDiscordRequest, getRandomEmoji, DiscordRequest } from './utils.js';
-import { getShuffledOptions, getResult } from './game.js';
+import { VerifyDiscordRequest } from './utils.js';
+import { ALL_COMMANDS } from './commands.js';
+import { InstallGlobalCommands } from './utils.js';
 import DrinkRoutes from './drinks/routes.js';
 
 // Create an express app
@@ -37,6 +34,9 @@ var hasPinged = false;
 const revealerID = process.env.REVEALER_ID;
 const CHANNEL_ID = process.env.CHANNEL_ID;
 const ROLE_ID = process.env.ROLE_ID;
+
+// Register all commands
+InstallGlobalCommands(process.env.APP_ID, ALL_COMMANDS);
 
 /**
  * Interactions endpoint URL where Discord will send HTTP requests

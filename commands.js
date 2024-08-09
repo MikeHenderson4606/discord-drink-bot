@@ -1,6 +1,4 @@
 import 'dotenv/config';
-import { getRPSChoices } from './game.js';
-import { capitalize, InstallGlobalCommands } from './utils.js';
 
 const ROUND_COMMAND = {
   name: 'round',
@@ -85,6 +83,4 @@ const HELP_COMMAND = {
   description: 'Help for those who need it'
 }
 
-const ALL_COMMANDS = [ROUND_COMMAND, SET_ROUND_COMMAND, HELP_COMMAND, PING_COMMAND, INSPECT_GUESSES_COMMAND, LEADERBOARD_COMMAND, GUESS_STATUS_COMMAND, REVEAL_DRINK_COMMAND, GUESS_DRINK_COMMAND];
-
-InstallGlobalCommands(process.env.APP_ID, ALL_COMMANDS);
+export const ALL_COMMANDS = [ROUND_COMMAND, SET_ROUND_COMMAND, HELP_COMMAND, PING_COMMAND, INSPECT_GUESSES_COMMAND, LEADERBOARD_COMMAND, GUESS_STATUS_COMMAND, REVEAL_DRINK_COMMAND, GUESS_DRINK_COMMAND];
