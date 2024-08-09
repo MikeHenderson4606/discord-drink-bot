@@ -72,15 +72,14 @@ app.post('/interactions',  async function (req, res) {
     // Help menu displaying commands
     if (name === 'help') {
       const helpText = `**/help** -> Displays this menu **(Hidden to other players)** \n
-                        **/ping** {info} -> Pings all guessers with any addditional info to help guess the drink **(Revealer only)** \n
-                        **/guess** {drink} -> Submits a guess with the given drink **(can be overridden before the reveal, hidden to other players)** \n
-                        **/guess_status** -> Gives the status on the drink you currently have guesssed **(Hidden to other players)** \n
-                        **/inspect_guesses** -> Gives a table of all the current guesses **(Hidden to other players)** \n
-                        **/reveal** {drink} {custom message} -> Reveals the drink with a custom message **(Revealer only)** \n
-                        **/round** -> Gets the current round number \n
-                        **/set_round** -> Sets the current round number **(Admin only)** \n
-                        **/leaderboard** -> Displays the leaderboard \n
-                      `;
+      **/ping** {info} -> Pings all guessers with any addditional info to help guess the drink **(Revealer only)** \n
+      **/guess** {drink} -> Submits a guess with the given drink **(can be overridden before the reveal, hidden to other players)** \n
+      **/guess_status** -> Gives the status on the drink you currently have guesssed **(Hidden to other players)** \n
+      **/inspect_guesses** -> Gives a table of all the current guesses **(Hidden to other players)** \n
+      **/reveal** {drink} {custom message} -> Reveals the drink with a custom message **(Revealer only)** \n
+      **/round** -> Gets the current round number \n
+      **/set_round** -> Sets the current round number **(Admin only)** \n
+      **/leaderboard** -> Displays the leaderboard \n `;
       const response = {
         type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
         data: {
