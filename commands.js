@@ -58,6 +58,12 @@ const LEADERBOARD_COMMAND = {
   type: 1
 };
 
+const RESTART_SERVER_COMMAND = {
+  name: 'restart_server',
+  description: 'Restarts the server if it goes down for being idle',
+  type: 1
+};
+
 const REVEAL_DRINK_COMMAND = {
   name: 'reveal',
   description: 'Used by drink revealer to reveal the drink',
@@ -83,4 +89,4 @@ const HELP_COMMAND = {
   description: 'Help for those who need it'
 }
 
-export const ALL_COMMANDS = [ROUND_COMMAND, SET_ROUND_COMMAND, HELP_COMMAND, PING_COMMAND, INSPECT_GUESSES_COMMAND, LEADERBOARD_COMMAND, GUESS_STATUS_COMMAND, REVEAL_DRINK_COMMAND, GUESS_DRINK_COMMAND];
+export const ALL_COMMANDS = [ROUND_COMMAND, SET_ROUND_COMMAND, HELP_COMMAND, RESTART_SERVER_COMMAND, PING_COMMAND, INSPECT_GUESSES_COMMAND, LEADERBOARD_COMMAND, GUESS_STATUS_COMMAND, REVEAL_DRINK_COMMAND, GUESS_DRINK_COMMAND];

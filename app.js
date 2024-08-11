@@ -72,6 +72,16 @@ app.post('/interactions',  async function (req, res) {
       }
       return res.send(response);
     }
+    if (name === 'restart_server') {
+      const response = {
+        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+        data: {
+          content: "If you're seeing this the server is up.",
+          flags: 64
+        }
+      }
+      return res.send(response);
+    }
     // Help menu displaying commands
     if (name === 'help') {
       const helpText = ` \n
@@ -83,7 +93,8 @@ app.post('/interactions',  async function (req, res) {
 **/reveal** {drink} {custom message} -> Reveals the drink with a custom message **(Revealer only)** \n
 **/round** -> Gets the current round number \n
 **/set_round** -> Sets the current round number **(Admin only)** \n
-**/leaderboard** -> Displays the leaderboard \n `;
+**/leaderboard** -> Displays the leaderboard \n 
+**/restart_server** -> Sends a call to the server which should spin up if it's not already running \n`;
       const response = {
         type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
         data: {
@@ -222,7 +233,7 @@ app.post('/interactions',  async function (req, res) {
     if (name === 'guess') {
       const currGameState = await gameState.getGameState();
 
-      if (!hasPinged) { // Ensure there has been a ping first
+      if (!currGameState.guess_phase) { // Ensure there has been a ping first
         return res.send({
           type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
           data: {
@@ -300,7 +311,9 @@ app.post('/interactions',  async function (req, res) {
     }
     // Reveal the drink
     if (name === 'reveal') {
-      if (!hasPinged) { // Ensure the there has been a ping first
+      const currGameState = await gameState.getGameState();
+
+      if (!currGameState.guess_phase) { // Ensure the there has been a ping first
         return res.send({
           type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
           data: {
