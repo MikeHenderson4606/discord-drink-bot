@@ -12,6 +12,7 @@ import { VerifyDiscordRequest } from './utils.js';
 import { ALL_COMMANDS } from './commands.js';
 import { InstallGlobalCommands } from './utils.js';
 import DrinkRoutes from './drinks/routes.js';
+import GameStateRoutes from './game_state/routes.js';
 
 // Create an express app
 const app = express();
@@ -28,8 +29,8 @@ mongoose.connect(connectionString);
 
 const guessClient = new GuessRoutes();
 const drinkClient = new DrinkRoutes();
-var roundNumber = 1;
-var hasPinged = false;
+const gameState = new GameStateRoutes();
+
 // Update these on the actual server
 const revealerID = process.env.REVEALER_ID;
 const CHANNEL_ID = process.env.CHANNEL_ID;
@@ -61,10 +62,12 @@ app.post('/interactions',  async function (req, res) {
 
     // Check current round
     if (name === 'round') {
+      const currGameState = await gameState.getGameState();
+
       const response = {
         type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
         data: {
-          content: 'The current round number is ' + roundNumber + '.',
+          content: 'The current round number is ' + currGameState.round_number + '.',
         }
       }
       return res.send(response);
@@ -100,7 +103,7 @@ app.post('/interactions',  async function (req, res) {
             content: 'The current round is now ' + newRoundNumber + '.',
           }
         }
-        roundNumber = newRoundNumber;
+        await gameState.incrementRound(newRoundNumber);
         return res.send(response);
       } catch (err) {
         const response = {
@@ -135,13 +138,14 @@ app.post('/interactions',  async function (req, res) {
           }
         },
       }
-      hasPinged = true;
+      await gameState.changeGuessPhase(true);
       return res.send(response);
     }
     // Check the user's guess status
     if (name === 'guess_status') {
+      const currGameState = await gameState.getGameState();
       const userId = req.body.member.user.id;
-      const response = await guessClient.getUserGuess(userId, roundNumber);
+      const response = await guessClient.getUserGuess(userId, currGameState.round_number);
       if (response) {
         return res.send({
           type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
@@ -216,6 +220,8 @@ app.post('/interactions',  async function (req, res) {
     }
     // Input a guess
     if (name === 'guess') {
+      const currGameState = await gameState.getGameState();
+
       if (!hasPinged) { // Ensure there has been a ping first
         return res.send({
           type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
@@ -234,19 +240,19 @@ app.post('/interactions',  async function (req, res) {
         user: userId,
         username: username,
         guess: guess,
-        roundNumber: roundNumber,
+        roundNumber: currGameState.round_number,
         correct: false
       };
 
       // See whether or not the user has already guessed
-      const allCurrentGuesses = await guessClient.getAllGuessesOnRound(roundNumber);
+      const allCurrentGuesses = await guessClient.getAllGuessesOnRound(currGameState.round_number);
       const ifAlreadyGuessed = allCurrentGuesses.find((guess) => {
         return (guess.user === userId)
       });
 
       // Handle it appropriately
       if (ifAlreadyGuessed) {
-        guessClient.updateGuess(guess, ifAlreadyGuessed.user, roundNumber);
+        guessClient.updateGuess(guess, ifAlreadyGuessed.user, currGameState.round_number);
       } else {
         guessClient.createGuess(guessFormat);
       }
@@ -272,7 +278,9 @@ app.post('/interactions',  async function (req, res) {
     }
     // Gets a current list of guesses
     if (name === 'inspect_guesses') {
-      const guesses = await guessClient.getAllGuessesOnRound(roundNumber);
+      const currGameState = await gameState.getGameState();
+
+      const guesses = await guessClient.getAllGuessesOnRound(currGameState.round_number);
       var guessFormat = '';
       var userList = [];
       for (let i = 0; i < guesses.length; i ++) {
@@ -347,12 +355,13 @@ app.post('/interactions',  async function (req, res) {
   // Handle message components
   else if (type === InteractionType.MESSAGE_COMPONENT) {
     if (data.custom_id === 'confirm') {
+      const currGameState = await gameState.getGameState();
       // Logic to determine who if anyone got it correctly
       const splitString = req.body.message.content.split('**');
       const revealVal = splitString[1]
       const userId = req.body.member.user.id;
       const username = req.body.member.user.username;
-      const guesses = await guessClient.getAllGuessesOnRound(roundNumber);
+      const guesses = await guessClient.getAllGuessesOnRound(currGameState.round_number);
       const customMessage = splitString[4].trim();
       const correctGuesses = guesses.filter((guess) => {
         if (guess.guess === revealVal) {
@@ -381,7 +390,7 @@ app.post('/interactions',  async function (req, res) {
             formattedString += '<@' + correctGuesses[i].user + '>, ';
           }
           userIds.push(correctGuesses[i].user);
-          await guessClient.updateCorrect(correctGuesses[i].user, roundNumber);
+          await guessClient.updateCorrect(correctGuesses[i].user, currGameState.round_number);
         }
       }
       // Create a new drink in the database
@@ -389,12 +398,12 @@ app.post('/interactions',  async function (req, res) {
         user: userId,
         username: username,
         drink: revealVal,
-        roundNumber: roundNumber
+        roundNumber: currGameState.round_number
       }
       drinkClient.createDrink(drink);
       // Post the confirmation message to the channel
       await api.post(API_BASE + `channels/${CHANNEL_ID}/messages`, {
-        content: '<@&' + ROLE_ID + '> The drink has been revealed allmighty drink guessers! The round is now ' + (roundNumber + 1) + '.',
+        content: '<@&' + ROLE_ID + '> The drink has been revealed allmighty drink guessers! The round is now ' + (currGameState.round_number + 1) + '.',
         allowed_mentions: {
           roles: [ROLE_ID]
         },
@@ -414,8 +423,8 @@ app.post('/interactions',  async function (req, res) {
           Authorization: `Bot ${process.env.DISCORD_TOKEN}`
         }
       });
-      roundNumber++;
-      hasPinged = false;
+      await gameState.incrementRound(currGameState.round_number + 1);
+      await gameState.changeGuessPhase(false);
     }
     if (data.custom_id === 'cancel') { // Cancel the reveal
       await axios.post(`https://discord.com/api/v9/interactions/${id}/${token}/callback`, {
